@@ -1,10 +1,18 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { getDb } from '../lib/db';
 import { createUUID } from '../../../shared/src/index';
 
-const upload = multer({ dest: path.resolve(process.cwd(), 'data/uploads') });
+const uploadDir = path.resolve(process.cwd(), 'data/uploads');
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, _file, cb) => cb(null, createUUID()),
+});
+const upload = multer({ storage });
 const router = Router();
 
 router.get('/', async (_, res) => {
