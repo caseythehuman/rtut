@@ -3,6 +3,8 @@ dist
 *.log
 backend/data/*
 !backend/data/.gitkeep
+!backend/data/raw/
+!backend/data/raw/.gitkeep
 .DS_Store
 .env.local
 .env.development.local

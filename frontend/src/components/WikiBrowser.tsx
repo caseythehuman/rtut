@@ -29,12 +29,39 @@ export function WikiBrowser() {
   const [query, setQuery] = useState('');
   const [pages, setPages] = useState<WikiPage[]>([]);
   const [searched, setSearched] = useState(false);
+  const [rawDir, setRawDir] = useState('');
+  const [ingestMessage, setIngestMessage] = useState('');
+  const [ingesting, setIngesting] = useState(false);
 
   const handleSearch = async () => {
     const res = await fetch(`/api/wiki/search?q=${encodeURIComponent(query)}`);
     const data: WikiPage[] = await res.json();
     setPages(data);
     setSearched(true);
+  };
+
+  const handleLoadRawDir = async () => {
+    const res = await fetch('/api/wiki/raw-dir');
+    const data: { rawDir: string } = await res.json();
+    setRawDir(data.rawDir);
+  };
+
+  const handleIngestRaw = async () => {
+    setIngesting(true);
+    try {
+      const res = await fetch('/api/wiki/ingest-raw', { method: 'POST' });
+      const data: {
+        importedFiles: number;
+        pagesCreated: number;
+        skippedFiles: number;
+      } = await res.json();
+      setIngestMessage(
+        `Imported ${data.importedFiles} file(s), created ${data.pagesCreated} page(s), skipped ${data.skippedFiles}.`
+      );
+      await handleSearch();
+    } finally {
+      setIngesting(false);
+    }
   };
 
   return (
@@ -62,6 +89,37 @@ export function WikiBrowser() {
           Search
         </button>
       </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+        <button
+          onClick={handleLoadRawDir}
+          style={{
+            padding: '6px 12px',
+            background: '#18181b',
+            border: '1px solid #3f3f46',
+            borderRadius: 6,
+            color: '#d4d4d8',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Show Raw Folder
+        </button>
+        <button
+          onClick={handleIngestRaw}
+          disabled={ingesting}
+          style={{
+            padding: '6px 12px',
+            background: '#0f766e',
+            border: '1px solid #0f766e',
+            borderRadius: 6,
+            color: '#ecfeff',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {ingesting ? 'Ingesting...' : 'Ingest Raw'}
+        </button>
+      </div>
+      {rawDir && <div style={{ color: '#71717a', fontSize: 11, marginTop: 6 }}>Raw folder: {rawDir}</div>}
+      {ingestMessage && <div style={{ color: '#22c55e', fontSize: 11, marginTop: 6 }}>{ingestMessage}</div>}
       {searched && pages.length === 0 && (
         <div style={{ color: '#52525b', fontSize: 12, marginTop: 8 }}>No pages found.</div>
       )}

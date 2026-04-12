@@ -5,6 +5,7 @@ import flowRoutes from './routes/flows';
 import assetRoutes from './routes/assets';
 import wikiRoutes from './routes/wiki';
 import executionRoutes from './routes/execution';
+import { ensureRawDumpDir } from './lib/wiki/ingestRawDocuments';
 
 const app = express();
 app.use(cors({ origin: 'http://localhost:5173' }));
@@ -27,3 +28,7 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toI
 
 const PORT = 3001;
 app.listen(PORT, () => console.log(`🚀 Backend listening on ${PORT}`));
+
+ensureRawDumpDir().catch((error) => {
+  console.error('Failed to initialize raw dump folder', error);
+});

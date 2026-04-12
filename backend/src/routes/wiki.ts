@@ -2,8 +2,20 @@ import { Router } from 'express';
 import { getDb } from '../lib/db';
 import { createUUID } from '../../../shared/src/index';
 import type { WikiPage } from '../../../shared/src/index';
+import { ensureRawDumpDir, ingestRawDocuments } from '../lib/wiki/ingestRawDocuments';
 
 const router = Router();
+
+router.get('/raw-dir', async (_req, res) => {
+  const rawDir = await ensureRawDumpDir();
+  res.json({ rawDir });
+});
+
+router.post('/ingest-raw', async (_req, res) => {
+  const db = await getDb();
+  const stats = await ingestRawDocuments(db);
+  res.json(stats);
+});
 
 router.get('/', async (_, res) => {
   const db = await getDb();
